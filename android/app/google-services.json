@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "30287351300",
+    "project_id": "job-portal-41b17",
+    "storage_bucket": "job-portal-41b17.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:30287351300:android:a4dc2b8e01068b252c2f51",
+        "android_client_info": {
+          "package_name": "com.example.flutter_job_portal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOwku4isph17vlQeC1tAGgMgKL9mQN94I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
