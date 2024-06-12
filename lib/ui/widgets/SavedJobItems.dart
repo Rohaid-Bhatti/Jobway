@@ -1,8 +1,26 @@
 import 'package:flutter/material.dart';
 
-class SavedJobItems extends StatelessWidget {
-  const SavedJobItems({super.key});
+class SavedJobItems extends StatefulWidget {
+  String pic, title, location, category, type;
+  bool isSaved;
+  final Function() onSave;
 
+  SavedJobItems({
+    super.key,
+    required this.pic,
+    required this.title,
+    required this.location,
+    required this.category,
+    required this.type,
+    required this.isSaved,
+    required this.onSave,
+  });
+
+  @override
+  State<SavedJobItems> createState() => _SavedJobItemsState();
+}
+
+class _SavedJobItemsState extends State<SavedJobItems> {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -17,8 +35,7 @@ class SavedJobItems extends StatelessWidget {
           children: <Widget>[
             CircleAvatar(
               radius: 30,
-              backgroundImage: NetworkImage(
-                  "https://cdn.pixabay.com/photo/2015/01/08/18/25/desk-593327_1280.jpg"),
+              backgroundImage: NetworkImage(widget.pic),
             ),
             SizedBox(width: 12),
             Expanded(
@@ -26,7 +43,7 @@ class SavedJobItems extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    'Flutter Developer',
+                    widget.title,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -34,7 +51,7 @@ class SavedJobItems extends StatelessWidget {
                   ),
                   SizedBox(height: 5),
                   Text(
-                    'Development',
+                    widget.category,
                     style: TextStyle(
                       color: Colors.grey,
                     ),
@@ -51,7 +68,7 @@ class SavedJobItems extends StatelessWidget {
                         width: 4,
                       ),
                       Text(
-                        'Lahore',
+                        widget.location,
                         style: TextStyle(
                           color: Colors.grey,
                         ),
@@ -70,7 +87,7 @@ class SavedJobItems extends StatelessWidget {
                         width: 4,
                       ),
                       Text(
-                        'Full-time',
+                        widget.type,
                         style: TextStyle(
                           color: Colors.grey,
                         ),
@@ -81,10 +98,10 @@ class SavedJobItems extends StatelessWidget {
               ),
             ),
             IconButton(
-              icon: Icon(Icons.bookmark_rounded),
-              onPressed: () {
-                // Handle bookmark action
-              },
+              icon: widget.isSaved
+                  ? Icon(Icons.bookmark_rounded)
+                  : Icon(Icons.bookmark_outline_rounded),
+              onPressed: widget.onSave,
             ),
           ],
         ),

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_job_portal/global.dart';
 import 'package:flutter_job_portal/models/bottomsheet.dart';
@@ -12,6 +14,27 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  Map<String, dynamic>? _userData;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentUser();
+  }
+
+  Future<void> _getCurrentUser() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      DocumentSnapshot userData =
+          await _firestore.collection('users').doc(user.uid).get();
+      setState(() {
+        _userData = userData.data() as Map<String, dynamic>?;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -31,36 +54,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(
                       height: 7.0,
                     ),
-                    /*Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                          "Jobs",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),*/
                     Row(
                       children: <Widget>[
                         Text(
-                          "Welcome John",
+                          "Welcome ${_userData?['name']}",
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Spacer(),
-                        /*IconButton(
-                          icon: Icon(
-                            Icons.search,
-                            color: Colors.black87,
-                          ),
-                          onPressed: () {},
-                        ),*/
                         CircleAvatar(
-                          backgroundImage: NetworkImage(
-                              "https://cdn.pixabay.com/photo/2017/06/09/07/37/notebook-2386034_960_720.jpg"),
+                          backgroundImage: _userData?['picture'] != null &&
+                                  _userData!['picture'].isNotEmpty
+                              ? NetworkImage(_userData!['picture'])
+                              : AssetImage('assets/icons/user.png')
+                                  as ImageProvider,
                         )
                       ],
                     ),
@@ -106,21 +115,42 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 11,
                     ),
                     Expanded(
-                      child: ListView.builder(
-                        itemCount: jobList.length,
-                        itemBuilder: (ctx, i) {
-                          return JobContainer(
-                            description: jobList[i].description,
-                            iconUrl: jobList[i].iconUrl,
-                            location: jobList[i].location,
-                            salary: jobList[i].salary,
-                            title: jobList[i].title,
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (ctx) => DetailsScreen(id: i),
-                              ),
-                            ),
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('job_posted')
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Center(child: CircularProgressIndicator());
+                          }
+                          if (!snapshot.hasData ||
+                              snapshot.data!.docs.isEmpty) {
+                            return Center(child: Text('No jobs posted yet.'));
+                          }
+
+                          final jobs = snapshot.data!.docs;
+                          return ListView.builder(
+                            itemCount: jobs.length,
+                            itemBuilder: (ctx, i) {
+                              final job = jobs[i];
+                              return JobContainer(
+                                description: job['description'],
+                                iconUrl: job['picture'] ??
+                                    'https://cdn.pixabay.com/photo/2015/01/08/18/26/write-593333_960_720.jpg',
+                                location: job['location'],
+                                salary: job['salary'],
+                                title: job['title'],
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (ctx) => DetailsScreen(
+                                      job: job,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           );
                         },
                       ),
@@ -129,19 +159,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            /*Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 60,
-              child: MyBottomNavBar(),
-            ),*/
             Provider.of<MyBottomSheetModel>(context).visible
                 ? Positioned(
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    // height: MediaQuery.of(context).size.height / 1.3,
                     child: MyBottomSheet(),
                   )
                 : Container(),

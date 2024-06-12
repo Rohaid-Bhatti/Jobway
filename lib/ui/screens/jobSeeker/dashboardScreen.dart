@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_job_portal/ui/screens/jobSeeker/AppliedJobScreen.dart';
 import 'package:flutter_job_portal/ui/screens/jobSeeker/home.dart';
 import 'package:flutter_job_portal/ui/screens/jobSeeker/profile.dart';
 import 'package:flutter_job_portal/ui/screens/jobSeeker/saved.dart';
@@ -16,6 +17,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   static List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     SavedScreen(),
+    AppliedJobScreen(),
     ProfileScreen(),
   ];
 
@@ -45,6 +47,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           BottomNavigationBarItem(
             icon: _selectedIndex == 2
+                ? Icon(Icons.call_to_action_rounded)
+                : Icon(Icons.call_to_action_outlined),
+            label: 'Applied',
+          ),
+          BottomNavigationBarItem(
+            icon: _selectedIndex == 3
                 ? Icon(Icons.person_rounded)
                 : Icon(Icons.person_outline_rounded),
             label: 'Profile',
@@ -52,6 +60,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.black,
         onTap: _onItemTapped,
       ),
     );

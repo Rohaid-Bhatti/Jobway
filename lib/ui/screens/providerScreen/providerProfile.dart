@@ -90,7 +90,7 @@ class _ProviderProfileState extends State<ProviderProfile> {
 
   Future<void> _updateUserData(Map<String, dynamic> newData) async {
     try {
-      await _firestore.collection('providers').doc(_user!.uid).update(newData);
+      await _firestore.collection('users').doc(_user!.uid).update(newData);
       setState(() {
         _userData?.addAll(newData);
       });

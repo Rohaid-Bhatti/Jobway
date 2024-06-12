@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_job_portal/ui/screens/providerScreen/applicantDetail.dart';
 import 'package:flutter_job_portal/ui/screens/providerScreen/providerHome.dart';
@@ -11,7 +13,7 @@ class ProviderDashboard extends StatefulWidget {
 }
 
 class _ProviderDashboardState extends State<ProviderDashboard> {
-  final int jobsPosted = 5; // Example data
+  var jobsPosted = 0;
   final int totalApplicants = 10; // Example data
   final List<Map<String, String>> applicants = [
     {
@@ -44,6 +46,29 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // Call a function to fetch the count of jobs posted by the current user
+    fetchJobsPostedByCurrentUser();
+  }
+
+  void fetchJobsPostedByCurrentUser() async {
+    // Get the UID of the current user
+    final currentUserUid = FirebaseAuth.instance.currentUser!.uid;
+
+    // Query the "job_posted" collection to get the count of jobs posted by the current user
+    final QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('job_posted')
+        .where('uid', isEqualTo: currentUserUid)
+        .get();
+
+    // Set the jobsPosted count to the number of documents retrieved
+    setState(() {
+      jobsPosted = snapshot.size;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -68,13 +93,6 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /*Text(
-              'Overview',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),*/
             SizedBox(height: 16),
             Row(
               children: [

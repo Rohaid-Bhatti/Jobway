@@ -50,6 +50,7 @@ class JobContainer extends StatelessWidget {
                       Text(
                         "$title",
                         style: Theme.of(context).textTheme.titleLarge,
+                        maxLines: 1,
                       ),
                       Text(
                         "$location",
@@ -74,7 +75,7 @@ class JobContainer extends StatelessWidget {
             ),
             SizedBox(height: 9),
             Text(
-              "$salary",
+              "$salary PKR",
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
