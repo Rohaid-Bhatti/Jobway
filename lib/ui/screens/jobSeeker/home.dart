@@ -136,8 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               final job = jobs[i];
                               return JobContainer(
                                 description: job['description'],
-                                iconUrl: job['picture'] ??
-                                    'https://cdn.pixabay.com/photo/2015/01/08/18/26/write-593333_960_720.jpg',
+                                iconUrl: job['picture'],
                                 location: job['location'],
                                 salary: job['salary'],
                                 title: job['title'],

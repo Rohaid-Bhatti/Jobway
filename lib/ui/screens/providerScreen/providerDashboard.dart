@@ -13,49 +13,18 @@ class ProviderDashboard extends StatefulWidget {
 }
 
 class _ProviderDashboardState extends State<ProviderDashboard> {
+  final currentUserUid = FirebaseAuth.instance.currentUser!.uid;
   var jobsPosted = 0;
-  final int totalApplicants = 10; // Example data
-  final List<Map<String, String>> applicants = [
-    {
-      'name': 'John Doe',
-      'position': 'Flutter Developer',
-      'status': 'Pending',
-      'email': 'john.doe@example.com',
-      'phone': '123-456-7890',
-      'resume': 'Link to Resume',
-      'type': 'Full Time'
-    },
-    {
-      'name': 'Jane Smith',
-      'position': 'UI/UX Designer',
-      'status': 'Cancelled',
-      'email': 'jane.smith@example.com',
-      'phone': '098-765-4321',
-      'resume': 'Link to Resume',
-      'type': 'Full Time'
-    },
-    {
-      'name': 'Michael Johnson',
-      'position': 'Project Manager',
-      'status': 'Hired',
-      'email': 'michael.johnson@example.com',
-      'phone': '111-222-3333',
-      'resume': 'Link to Resume',
-      'type': 'Full Time'
-    },
-  ];
+  var totalApplicants = 0;
 
   @override
   void initState() {
     super.initState();
-    // Call a function to fetch the count of jobs posted by the current user
     fetchJobsPostedByCurrentUser();
+    fetchTotalApplicantByCurrentUser();
   }
 
-  void fetchJobsPostedByCurrentUser() async {
-    // Get the UID of the current user
-    final currentUserUid = FirebaseAuth.instance.currentUser!.uid;
-
+  Future<void> fetchJobsPostedByCurrentUser() async {
     // Query the "job_posted" collection to get the count of jobs posted by the current user
     final QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection('job_posted')
@@ -66,6 +35,22 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
     setState(() {
       jobsPosted = snapshot.size;
     });
+  }
+
+  Future<void> fetchTotalApplicantByCurrentUser() async {
+    final QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('job_applied')
+        .where('provider_id', isEqualTo: currentUserUid)
+        .get();
+
+    setState(() {
+      totalApplicants = snapshot.size;
+    });
+  }
+
+  Future<void> _refreshData() async {
+    await fetchJobsPostedByCurrentUser();
+    await fetchTotalApplicantByCurrentUser();
   }
 
   @override
@@ -88,22 +73,67 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
           ),
         ],
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => JobProviderHome()));
-                    },
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => JobProviderHome()));
+                      },
+                      child: Container(
+                        height: 150,
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 2,
+                              blurRadius: 8,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Jobs Posted',
+                              maxLines: 1,
+                              style: TextStyle(
+                                overflow: TextOverflow.ellipsis,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              '$jobsPosted',
+                              style: TextStyle(
+                                fontSize: 32,
+                                color: Colors.blueAccent,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
                     child: Container(
                       height: 150,
                       padding: EdgeInsets.all(16),
@@ -123,7 +153,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Jobs Posted',
+                            'Total Applicants',
                             maxLines: 1,
                             style: TextStyle(
                               overflow: TextOverflow.ellipsis,
@@ -133,7 +163,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            '$jobsPosted',
+                            '$totalApplicants',
                             style: TextStyle(
                               fontSize: 32,
                               color: Colors.blueAccent,
@@ -144,101 +174,75 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                       ),
                     ),
                   ),
-                ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: Container(
-                    height: 150,
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          spreadRadius: 2,
-                          blurRadius: 8,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Total Applicants',
-                          maxLines: 1,
-                          style: TextStyle(
-                            overflow: TextOverflow.ellipsis,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          '$totalApplicants',
-                          style: TextStyle(
-                            fontSize: 32,
-                            color: Colors.blueAccent,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 24),
-            Text(
-              'Applicants',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+                ],
               ),
-            ),
-            SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                itemCount: applicants.length,
-                itemBuilder: (context, index) {
-                  final applicant = applicants[index];
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ApplicantDetailScreen(
-                                    applicant: applicant,
-                                  )));
-                    },
-                    child: Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      elevation: 2,
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: NetworkImage(
-                              "https://cdn.pixabay.com/photo/2017/06/09/07/37/notebook-2386034_960_720.jpg"),
-                        ),
-                        title: Text(applicant['name']!),
-                        subtitle: Text(applicant['position']!),
-                        trailing: Text(
-                          applicant['status']!,
-                          style: TextStyle(
-                            color: _getStatusColor(applicant['status']!),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
+              SizedBox(height: 24),
+              Text(
+                'Applicants',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          ],
+              SizedBox(height: 16),
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('job_applied')
+                        .where('provider_id', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return Center(child: Text('No jobs applied yet.'));
+                      }
+        
+                      final applicantJob = snapshot.data!.docs;
+                      return ListView.builder(
+                        itemCount: applicantJob.length,
+                        itemBuilder: (context, index) {
+                          final applicantJobs = applicantJob[index];
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ApplicantDetailScreen(
+                                        applicant: applicantJobs,
+                                      )));
+                            },
+                            child: Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                              elevation: 2,
+                              margin: EdgeInsets.symmetric(vertical: 8),
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundImage: NetworkImage(
+                                      applicantJobs['user_picture']),
+                                ),
+                                title: Text(applicantJobs['user_name']!),
+                                subtitle: Text(applicantJobs['user_designation']!),
+                                trailing: Text(
+                                  applicantJobs['status']!,
+                                  style: TextStyle(
+                                    color: _getStatusColor(applicantJobs['status']!),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -246,14 +250,16 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'Pending':
+      case 'Processing':
+        return Colors.blue;
+      case 'Waiting for Interview':
         return Colors.orange;
-      /*case 'Interviewed':
-        return Colors.blue;*/
+      case 'Rejected':
+        return Colors.red;
       case 'Hired':
         return Colors.green;
       default:
-        return Colors.grey;
+        return Colors.black;
     }
   }
 }

@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_job_portal/ui/screens/providerScreen/PDFViewerScreen.dart';
 
 class ApplicantDetailScreen extends StatefulWidget {
-  final Map<String, String> applicant;
+  final QueryDocumentSnapshot applicant;
 
   const ApplicantDetailScreen({super.key, required this.applicant});
 
@@ -10,9 +12,38 @@ class ApplicantDetailScreen extends StatefulWidget {
 }
 
 class _ApplicantDetailScreenState extends State<ApplicantDetailScreen> {
+  late String currentStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    currentStatus = widget.applicant['status']!;
+  }
+
+  Future<void> _updateStatus(String newStatus) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('job_applied')
+          .doc(widget.applicant['document_id'])
+          .update({'status': newStatus});
+      setState(() {
+        // widget.applicant.reference.update({'status': newStatus});
+        currentStatus = newStatus;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Status updated to $newStatus')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update status. Please try again.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final applicant = widget.applicant;
+    final String? pictureUrl = widget.applicant['user_picture'];
+    final bool hasPicture = pictureUrl != null && pictureUrl.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -29,13 +60,15 @@ class _ApplicantDetailScreenState extends State<ApplicantDetailScreen> {
             Center(
               child: CircleAvatar(
                 radius: 50,
-                backgroundImage: NetworkImage(
-                    "https://cdn.pixabay.com/photo/2017/06/09/07/37/notebook-2386034_960_720.jpg"),
+                backgroundImage: hasPicture ? NetworkImage(pictureUrl) : null,
+                child: !hasPicture
+                    ? Image.asset('assets/icons/user.png')
+                    : null,
               ),
             ),
             SizedBox(height: 16),
             Text(
-              applicant['name']!,
+              widget.applicant['user_name']!,
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -43,53 +76,71 @@ class _ApplicantDetailScreenState extends State<ApplicantDetailScreen> {
             ),
             SizedBox(height: 8),
             Text(
-              applicant['position']!,
+              widget.applicant['user_designation']!,
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.grey.shade700,
               ),
             ),
             SizedBox(height: 16),
-            _buildDetailRow(Icons.email, 'Email', applicant['email']!),
+            _buildDetailRow(Icons.email, 'Email', widget.applicant['user_email']!),
             SizedBox(height: 16),
-            _buildDetailRow(Icons.phone, 'Phone', applicant['phone']!),
+            _buildDetailRow(Icons.phone, 'Phone', widget.applicant['user_number']!),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PDFViewerScreen(pdfUrl: widget.applicant['user_cv']),
+                  ),
+                );
+              },
+              child: _buildDetailRow(Icons.description, 'Resume', "Link to Resume"),
+            ),
             SizedBox(height: 16),
-            _buildDetailRow(Icons.description, 'Resume', applicant['resume']!),
-            SizedBox(height: 16),
-            _buildDetailRow(Icons.design_services, 'Type', applicant['type']!),
+            _buildDetailRow(Icons.design_services, 'Type', widget.applicant['job_type']!),
             SizedBox(height: 16),
             Text(
-              'Status: ${applicant['status']}',
+              'Status: $currentStatus',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: _getStatusColor(applicant['status']!),
+                color: _getStatusColor(currentStatus),
               ),
             ),
             SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Handle accept logic
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white60,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                if (currentStatus != 'Rejected' && currentStatus != 'Hired') ...[
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (currentStatus == 'Processing') {
+                          _updateStatus('Waiting for Interview');
+                        } else if (currentStatus == 'Waiting for Interview') {
+                          _updateStatus('Hired');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white60,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      child: Text(
+                        currentStatus == 'Processing' ? 'Proceed' : 'Hired',
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
-                    child: Text('Accept', style: TextStyle(color: Colors.black),),
                   ),
-                ),
-                SizedBox(width: 16),
+                  SizedBox(width: 16),
+                ],
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Handle decline logic
+                    onPressed: currentStatus == 'Hired' ? null : () {
+                      _updateStatus('Rejected');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
@@ -98,7 +149,7 @@ class _ApplicantDetailScreenState extends State<ApplicantDetailScreen> {
                       ),
                       padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     ),
-                    child: Text('Decline', style: TextStyle(color: Colors.white),),
+                    child: Text('Reject', style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],
@@ -137,14 +188,16 @@ class _ApplicantDetailScreenState extends State<ApplicantDetailScreen> {
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'Pending':
-        return Colors.orange;
-      case 'Interviewed':
+      case 'Processing':
         return Colors.blue;
+      case 'Waiting for Interview':
+        return Colors.orange;
+      case 'Rejected':
+        return Colors.red;
       case 'Hired':
         return Colors.green;
       default:
-        return Colors.grey;
+        return Colors.black;
     }
   }
 }

@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_job_portal/ui/screens/jobSeeker/CreateCVScreen.dart';
+import 'package:flutter_job_portal/ui/screens/jobSeeker/FAQScreen.dart';
 import 'package:flutter_job_portal/ui/screens/jobSeeker/accountScreen.dart';
 import 'package:flutter_job_portal/ui/screens/jobSeeker/signInScreen.dart';
 
@@ -172,10 +174,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         Divider(),
                         ListTile(
+                          leading: Icon(Icons.create),
+                          title: Text('Create CV'),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CreateCVScreen(
+                                  userData: _userData,
+                                  userId: _user!.uid,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        Divider(),
+                        ListTile(
                           leading: Icon(Icons.question_answer_rounded),
                           title: Text('FAQs'),
                           onTap: () {
                             // Navigate to settings screen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => FAQScreen()),
+                            );
                           },
                         ),
                         Divider(),

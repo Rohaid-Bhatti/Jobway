@@ -51,41 +51,60 @@ class _DetailsScreenState extends State<DetailsScreen>
     try {
       final User? user = _auth.currentUser;
 
-      // Create a new document reference
-      DocumentReference appliedDocRef =
-          FirebaseFirestore.instance.collection('job_applied').doc();
-      String docId = appliedDocRef.id;
-
       if (user != null) {
-        await appliedDocRef.set({
-          'document_id': docId,
-          'job_id': widget.job['documentId'],
-          'user_id': user.uid,
-          'provider_id': widget.job['uid'],
-          'applied_at': Timestamp.now(),
-          'job_title': widget.job['title'],
-          'job_description': widget.job['description'],
-          'job_responsibility': widget.job['responsibility'],
-          'job_location': widget.job['location'],
-          'job_category': widget.job['category'],
-          'job_type': widget.job['type'],
-          'job_salary': widget.job['salary'],
-          'company_about': widget.job['about'],
-          'company_picture': widget.job['picture'],
-          'company_number': widget.job['number'],
-          'company_email': widget.job['email'],
-          'status': 'Processing',
-        });
 
-        /*if (collection == 'job_saved') {
-          setState(() {
-            _isJobSaved = true;
+        // Get user details from Firestore
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+
+        // Check if cv_pdf_url exists in user's document
+        if (!userData.containsKey('cv_pdf_url') || userData['cv_pdf_url'].isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Please complete your CV before applying.')),
+          );
+        }
+        else {
+          String userEmail = userDoc['email'] ?? '';
+          String userName = userDoc['name'] ?? '';
+          String userDesignation = userDoc['designation'] ?? '';
+          String userPicture = userDoc['picture'] ?? '';
+          String userNumber = userDoc['number'] ?? '';
+          String userCV = userDoc['cv_pdf_url'] ?? '';
+
+          // Create a new document reference
+          DocumentReference appliedDocRef = FirebaseFirestore.instance.collection('job_applied').doc();
+          String docId = appliedDocRef.id;
+
+          await appliedDocRef.set({
+            'document_id': docId,
+            'job_id': widget.job['documentId'],
+            'user_id': user.uid,
+            'user_email': userEmail,
+            'user_name': userName,
+            'user_cv': userCV,
+            'user_picture': userPicture,
+            'user_designation': userDesignation,
+            'user_number': userNumber,
+            'provider_id': widget.job['uid'],
+            'applied_at': Timestamp.now(),
+            'job_title': widget.job['title'],
+            'job_description': widget.job['description'],
+            'job_responsibility': widget.job['responsibility'],
+            'job_location': widget.job['location'],
+            'job_category': widget.job['category'],
+            'job_type': widget.job['type'],
+            'job_salary': widget.job['salary'],
+            'company_about': widget.job['about'],
+            'company_picture': widget.job['picture'],
+            'company_number': widget.job['number'],
+            'company_email': widget.job['email'],
+            'status': 'Processing',
           });
-        }*/
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Successfully Applied!')),
-        );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Successfully Applied!')),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('You must be logged in for applying.')),

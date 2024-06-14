@@ -34,6 +34,10 @@ dependencies:
   cloud_firestore: ^4.17.5
   firebase_storage: ^11.7.7
   shared_preferences: ^2.2.3
+  pdf: ^3.10.8
+  printing: ^5.12.0
+  path_provider: ^2.1.3
+  syncfusion_flutter_pdfviewer: ^26.1.35
   cupertino_icons: ^1.0.2
   provider:
 

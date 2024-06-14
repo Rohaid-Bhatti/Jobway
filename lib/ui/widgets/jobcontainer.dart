@@ -14,6 +14,9 @@ class JobContainer extends StatelessWidget {
       required this.onTap});
   @override
   Widget build(BuildContext context) {
+    final String? pictureUrl = iconUrl;
+    final bool hasPicture = pictureUrl != null && pictureUrl.isNotEmpty;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -36,8 +39,21 @@ class JobContainer extends StatelessWidget {
               children: <Widget>[
                 ClipRRect(
                   borderRadius: BorderRadius.circular(15.0),
-                  child: Image.network(
-                    "$iconUrl",
+                  child: hasPicture
+                      ? Image.network(
+                    pictureUrl,
+                    height: 71,
+                    width: 71,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
+                        'assets/icons/company.png',
+                        height: 71,
+                        width: 71,
+                      );
+                    },
+                  )
+                      : Image.asset(
+                    'assets/icons/company.png',
                     height: 71,
                     width: 71,
                   ),
