@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_job_portal/global.dart';
 import 'package:flutter_job_portal/ui/widgets/SavedJobItems.dart';
 
 class SavedScreen extends StatefulWidget {

@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_job_portal/global.dart';
 import 'package:flutter_job_portal/models/bottomsheet.dart';
 import 'package:flutter_job_portal/ui/screens/jobSeeker/details.dart';
 import 'package:flutter_job_portal/ui/widgets/jobcontainer.dart';
@@ -17,6 +16,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic>? _userData;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -82,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: <Widget>[
                           Expanded(
                             child: TextField(
+                              controller: _searchController,
                               decoration: InputDecoration(
                                 prefixIcon: Icon(Icons.search),
                                 hintText: "Search",
@@ -91,9 +93,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fillColor: Color(0xffe6e6ec),
                                 filled: true,
                               ),
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchQuery = value.toLowerCase();
+                                });
+                              },
                             ),
                           ),
-                          SizedBox(width: 15),
+                          /*SizedBox(width: 15),
                           Container(
                             decoration: BoxDecoration(
                               color: Color(0xffe6e6ec),
@@ -107,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     .changeState();
                               },
                             ),
-                          ),
+                          ),*/
                         ],
                       ),
                     ),
@@ -130,10 +137,47 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
 
                           final jobs = snapshot.data!.docs;
+
+                          final filteredJobs = jobs.where((job) {
+                            return job['title']
+                                .toString()
+                                .toLowerCase()
+                                .contains(_searchQuery);
+                          }).toList();
+
+                          //made changes here
+                          /*final bottomSheetModel =
+                              Provider.of<MyBottomSheetModel>(context);
+
+                          final filteredJobs = jobs.where((job) {
+                            final jobTitle =
+                                job['title'].toString().toLowerCase();
+                            final jobSalary = int.tryParse(
+                                    job['salary'].replaceAll(',', '')) ??
+                                0;
+                            final jobType = job['type'];
+
+                            final matchesSearchQuery =
+                                jobTitle.contains(_searchQuery);
+                            final matchesJobType =
+                                bottomSheetModel.selectedJobTypes.isEmpty ||
+                                    bottomSheetModel.selectedJobTypes
+                                        .contains(jobType);
+                            final matchesSalaryRange = jobSalary >=
+                                    bottomSheetModel
+                                        .selectedSalaryRange.start &&
+                                jobSalary <=
+                                    bottomSheetModel.selectedSalaryRange.end;
+
+                            return matchesSearchQuery &&
+                                matchesJobType &&
+                                matchesSalaryRange;
+                          }).toList();*/
+
                           return ListView.builder(
-                            itemCount: jobs.length,
+                            itemCount: /*jobs.length*/ filteredJobs.length,
                             itemBuilder: (ctx, i) {
-                              final job = jobs[i];
+                              final job = /*jobs[i]*/ filteredJobs[i];
                               return JobContainer(
                                 description: job['description'],
                                 iconUrl: job['picture'],
@@ -158,14 +202,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            Provider.of<MyBottomSheetModel>(context).visible
+            /*Provider.of<MyBottomSheetModel>(context).visible
                 ? Positioned(
                     bottom: 0,
                     left: 0,
                     right: 0,
                     child: MyBottomSheet(),
                   )
-                : Container(),
+                : Container(),*/
           ],
         ),
       ),

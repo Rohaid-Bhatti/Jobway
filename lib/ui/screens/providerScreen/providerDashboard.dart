@@ -189,7 +189,8 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                 child: StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection('job_applied')
-                        .where('provider_id', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+                        .where('provider_id',
+                            isEqualTo: FirebaseAuth.instance.currentUser!.uid)
                         .snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -198,7 +199,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                         return Center(child: Text('No jobs applied yet.'));
                       }
-        
+
                       final applicantJob = snapshot.data!.docs;
                       return ListView.builder(
                         itemCount: applicantJob.length,
@@ -209,9 +210,10 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => ApplicantDetailScreen(
-                                        applicant: applicantJobs,
-                                      )));
+                                      builder: (context) =>
+                                          ApplicantDetailScreen(
+                                            applicant: applicantJobs,
+                                          )));
                             },
                             child: Card(
                               shape: RoundedRectangleBorder(
@@ -221,15 +223,23 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                               margin: EdgeInsets.symmetric(vertical: 8),
                               child: ListTile(
                                 leading: CircleAvatar(
-                                  backgroundImage: NetworkImage(
-                                      applicantJobs['user_picture']),
+                                  backgroundImage:
+                                      applicantJobs['user_picture'].isNotEmpty
+                                          ? NetworkImage(
+                                              applicantJobs['user_picture'])
+                                          : null,
+                                  child: applicantJobs['user_picture'].isEmpty
+                                      ? Image.asset('assets/icons/user.png')
+                                      : null,
                                 ),
                                 title: Text(applicantJobs['user_name']!),
-                                subtitle: Text(applicantJobs['user_designation']!),
+                                subtitle:
+                                    Text(applicantJobs['user_designation']!),
                                 trailing: Text(
                                   applicantJobs['status']!,
                                   style: TextStyle(
-                                    color: _getStatusColor(applicantJobs['status']!),
+                                    color: _getStatusColor(
+                                        applicantJobs['status']!),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -238,8 +248,7 @@ class _ProviderDashboardState extends State<ProviderDashboard> {
                           );
                         },
                       );
-                    }
-                ),
+                    }),
               ),
             ],
           ),

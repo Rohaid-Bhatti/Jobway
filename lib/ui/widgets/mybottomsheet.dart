@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_job_portal/models/bottomsheet.dart';
-import 'package:flutter_job_portal/ui/widgets/experiencelevelwidget.dart';
 import 'package:provider/provider.dart';
 
 class MyBottomSheet extends StatefulWidget {
@@ -11,21 +10,18 @@ class MyBottomSheet extends StatefulWidget {
 class JobTypes {
   final String title;
   bool checked;
-  final int count;
 
-  JobTypes({required this.checked, required this.title, required this.count});
+  JobTypes({required this.checked, required this.title});
 }
 
 class _MyBottomSheetState extends State<MyBottomSheet> {
   List<JobTypes> jobTypes = [
-    JobTypes(title: "Full-Time", checked: false, count: 135),
-    JobTypes(title: "Part-Time", checked: false, count: 235),
-    JobTypes(title: "Contract", checked: false, count: 39),
-    JobTypes(title: "Internship", checked: false, count: 59),
-    JobTypes(title: "Temporary", checked: false, count: 21),
-    JobTypes(title: "Commission", checked: false, count: 3),
+    JobTypes(title: "Full-Time", checked: false),
+    JobTypes(title: "Part-Time", checked: false),
+    JobTypes(title: "Internship", checked: false),
   ];
   RangeValues _rangeValues = RangeValues(0, 300000);
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -61,11 +57,11 @@ class _MyBottomSheetState extends State<MyBottomSheet> {
           ),
           GridView.count(
             shrinkWrap: true,
-            childAspectRatio: 3,
-            crossAxisCount: 2,
+            childAspectRatio: 7,
+            crossAxisCount: 1,
             children: List.generate(
               jobTypes.length,
-              (i) {
+                  (i) {
                 return Row(
                   children: <Widget>[
                     Checkbox(
@@ -76,17 +72,12 @@ class _MyBottomSheetState extends State<MyBottomSheet> {
                         });
                       },
                     ),
-                    Text("${jobTypes[i].title} (${jobTypes[i].count})"),
+                    Text("${jobTypes[i].title}"),
                   ],
                 );
               },
             ),
           ),
-          Text(
-            "Experience Level",
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          ExperienceLevelWidget(),
           Container(
             height: 40,
             width: double.infinity,
@@ -102,8 +93,18 @@ class _MyBottomSheetState extends State<MyBottomSheet> {
                     .labelLarge
                     ?.apply(color: Colors.white),
               ),
-              onPressed: () =>
-                  Provider.of<MyBottomSheetModel>(context).changeState(),
+              onPressed: () {
+                final selectedTypes = jobTypes
+                    .where((type) => type.checked)
+                    .map((type) => type.title)
+                    .toList();
+                Provider.of<MyBottomSheetModel>(context, listen: false)
+                    .updateJobTypes(selectedTypes);
+                Provider.of<MyBottomSheetModel>(context, listen: false)
+                    .updateSalaryRange(_rangeValues);
+                Provider.of<MyBottomSheetModel>(context, listen: false)
+                    .changeState();
+              },
             ),
           )
         ],

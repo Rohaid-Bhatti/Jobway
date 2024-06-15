@@ -73,8 +73,12 @@ class _JobProviderHomeState extends State<JobProviderHome> {
                             children: [
                               CircleAvatar(
                                 radius: 30,
-                                backgroundImage: NetworkImage(
-                                    "https://cdn.pixabay.com/photo/2017/06/09/07/37/notebook-2386034_960_720.jpg"),
+                                backgroundImage: job['picture'].isNotEmpty
+                                    ? NetworkImage(job['picture'])
+                                    : null,
+                                child: job['picture'].isEmpty
+                                    ? Image.asset('assets/icons/user.png')
+                                    : null,
                               ),
                               SizedBox(width: 16),
                               Expanded(
