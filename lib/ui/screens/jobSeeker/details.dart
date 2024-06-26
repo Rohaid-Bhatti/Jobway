@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DetailsScreen extends StatefulWidget {
   final QueryDocumentSnapshot job;
@@ -52,18 +53,24 @@ class _DetailsScreenState extends State<DetailsScreen>
       final User? user = _auth.currentUser;
 
       if (user != null) {
-
         // Get user details from Firestore
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
         Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
 
         // Check if cv_pdf_url exists in user's document
-        if (!userData.containsKey('cv_pdf_url') || userData['cv_pdf_url'].isEmpty) {
+        if (!userData.containsKey('cv_pdf_url') ||
+            userData['cv_pdf_url'].isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Please complete your CV before applying.')),
           );
-        }
-        else {
+        } else if (userData['designation'] != widget.job['category']) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Apply in the relevant field.')),
+          );
+        } else {
           String userEmail = userDoc['email'] ?? '';
           String userName = userDoc['name'] ?? '';
           String userDesignation = userDoc['designation'] ?? '';
@@ -72,7 +79,8 @@ class _DetailsScreenState extends State<DetailsScreen>
           String userCV = userDoc['cv_pdf_url'] ?? '';
 
           // Create a new document reference
-          DocumentReference appliedDocRef = FirebaseFirestore.instance.collection('job_applied').doc();
+          DocumentReference appliedDocRef =
+              FirebaseFirestore.instance.collection('job_applied').doc();
           String docId = appliedDocRef.id;
 
           await appliedDocRef.set({
@@ -179,6 +187,14 @@ class _DetailsScreenState extends State<DetailsScreen>
     }
   }
 
+  void _shareJob() {
+    final jobDetails = '''
+    Job Title: ${widget.job['title']}
+    Description: ${widget.job['description']}
+    ''';
+    Share.share(jobDetails);
+  }
+
   @override
   Widget build(BuildContext context) {
     final String? pictureUrl = widget.job['picture'];
@@ -237,7 +253,9 @@ class _DetailsScreenState extends State<DetailsScreen>
                       Icons.share,
                       color: Colors.white,
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      _shareJob();
+                    },
                   ),
                 ],
               ),

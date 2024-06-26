@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_job_portal/ui/screens/providerScreen/PDFViewerScreen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ApplicantDetailScreen extends StatefulWidget {
   final QueryDocumentSnapshot applicant;
@@ -40,6 +41,33 @@ class _ApplicantDetailScreenState extends State<ApplicantDetailScreen> {
     }
   }
 
+  Future<void> _callPhone() async {
+    final Uri phoneLaunchUri = Uri(
+      scheme: 'tel',
+      path: widget.applicant['user_number'],
+    );
+
+    if (await canLaunch(phoneLaunchUri.toString())) {
+      await launch(phoneLaunchUri.toString());
+    } else {
+      throw 'Could not launch phone dialer';
+    }
+  }
+
+  // for launching messages app
+  void _openMessageApp() async {
+    final Uri uri = Uri(
+      scheme: 'sms',
+      path: widget.applicant['user_number'], // Replace with the desired number
+    );
+
+    if (await canLaunch(uri.toString())) {
+      await launch(uri.toString());
+    } else {
+      throw 'Could not launch messaging app';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final String? pictureUrl = widget.applicant['user_picture'];
@@ -51,6 +79,13 @@ class _ApplicantDetailScreenState extends State<ApplicantDetailScreen> {
           'Detail',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+              onPressed: () {
+                _openMessageApp();
+              },
+              icon: Icon(Icons.message_outlined))
+        ],
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
@@ -61,9 +96,8 @@ class _ApplicantDetailScreenState extends State<ApplicantDetailScreen> {
               child: CircleAvatar(
                 radius: 50,
                 backgroundImage: hasPicture ? NetworkImage(pictureUrl) : null,
-                child: !hasPicture
-                    ? Image.asset('assets/icons/user.png')
-                    : null,
+                child:
+                    !hasPicture ? Image.asset('assets/icons/user.png') : null,
               ),
             ),
             SizedBox(height: 16),
@@ -83,22 +117,32 @@ class _ApplicantDetailScreenState extends State<ApplicantDetailScreen> {
               ),
             ),
             SizedBox(height: 16),
-            _buildDetailRow(Icons.email, 'Email', widget.applicant['user_email']!),
+            _buildDetailRow(
+                Icons.email, 'Email', widget.applicant['user_email']!),
             SizedBox(height: 16),
-            _buildDetailRow(Icons.phone, 'Phone', widget.applicant['user_number']!),
+            GestureDetector(
+                onTap: () {
+                  _callPhone();
+                },
+                child: _buildDetailRow(
+                    Icons.phone, 'Phone', widget.applicant['user_number']!)),
+            SizedBox(height: 16),
             GestureDetector(
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => PDFViewerScreen(pdfUrl: widget.applicant['user_cv']),
+                    builder: (context) =>
+                        PDFViewerScreen(pdfUrl: widget.applicant['user_cv']),
                   ),
                 );
               },
-              child: _buildDetailRow(Icons.description, 'Resume', "Link to Resume"),
+              child: _buildDetailRow(
+                  Icons.description, 'Resume', "Link to Resume"),
             ),
             SizedBox(height: 16),
-            _buildDetailRow(Icons.design_services, 'Type', widget.applicant['job_type']!),
+            _buildDetailRow(
+                Icons.design_services, 'Type', widget.applicant['job_type']!),
             SizedBox(height: 16),
             Text(
               'Status: $currentStatus',
@@ -112,7 +156,8 @@ class _ApplicantDetailScreenState extends State<ApplicantDetailScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (currentStatus != 'Rejected' && currentStatus != 'Hired') ...[
+                if (currentStatus != 'Rejected' &&
+                    currentStatus != 'Hired') ...[
                   Center(
                     child: ElevatedButton(
                       onPressed: () {
@@ -127,7 +172,8 @@ class _ApplicantDetailScreenState extends State<ApplicantDetailScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                       ),
                       child: Text(
                         currentStatus == 'Processing' ? 'Proceed' : 'Hired',
@@ -139,17 +185,21 @@ class _ApplicantDetailScreenState extends State<ApplicantDetailScreen> {
                 ],
                 Center(
                   child: ElevatedButton(
-                    onPressed: currentStatus == 'Hired' ? null : () {
-                      _updateStatus('Rejected');
-                    },
+                    onPressed: currentStatus == 'Hired'
+                        ? null
+                        : () {
+                            _updateStatus('Rejected');
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     ),
-                    child: Text('Reject', style: TextStyle(color: Colors.white)),
+                    child:
+                        Text('Reject', style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],

@@ -100,21 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                             ),
                           ),
-                          /*SizedBox(width: 15),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Color(0xffe6e6ec),
-                              borderRadius: BorderRadius.circular(9.0),
-                            ),
-                            child: IconButton(
-                              icon: Icon(Icons.tune),
-                              onPressed: () {
-                                Provider.of<MyBottomSheetModel>(context,
-                                        listen: false)
-                                    .changeState();
-                              },
-                            ),
-                          ),*/
                         ],
                       ),
                     ),
@@ -144,35 +129,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 .toLowerCase()
                                 .contains(_searchQuery);
                           }).toList();
-
-                          //made changes here
-                          /*final bottomSheetModel =
-                              Provider.of<MyBottomSheetModel>(context);
-
-                          final filteredJobs = jobs.where((job) {
-                            final jobTitle =
-                                job['title'].toString().toLowerCase();
-                            final jobSalary = int.tryParse(
-                                    job['salary'].replaceAll(',', '')) ??
-                                0;
-                            final jobType = job['type'];
-
-                            final matchesSearchQuery =
-                                jobTitle.contains(_searchQuery);
-                            final matchesJobType =
-                                bottomSheetModel.selectedJobTypes.isEmpty ||
-                                    bottomSheetModel.selectedJobTypes
-                                        .contains(jobType);
-                            final matchesSalaryRange = jobSalary >=
-                                    bottomSheetModel
-                                        .selectedSalaryRange.start &&
-                                jobSalary <=
-                                    bottomSheetModel.selectedSalaryRange.end;
-
-                            return matchesSearchQuery &&
-                                matchesJobType &&
-                                matchesSalaryRange;
-                          }).toList();*/
 
                           return ListView.builder(
                             itemCount: /*jobs.length*/ filteredJobs.length,
