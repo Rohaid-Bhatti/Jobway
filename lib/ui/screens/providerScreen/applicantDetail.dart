@@ -141,6 +141,14 @@ class _ApplicantDetailScreenState extends State<ApplicantDetailScreen> {
                   Icons.description, 'Resume', "Link to Resume"),
             ),
             SizedBox(height: 16),
+            GestureDetector(
+              onTap: () {
+                _showImageDialog(widget.applicant['receipt_url']);
+              },
+              child: _buildDetailRow(
+                  Icons.payment_rounded, 'Payment Receipt', "Click to open"),
+            ),
+            SizedBox(height: 16),
             _buildDetailRow(
                 Icons.design_services, 'Type', widget.applicant['job_type']!),
             SizedBox(height: 16),
@@ -233,6 +241,22 @@ class _ApplicantDetailScreenState extends State<ApplicantDetailScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  void _showImageDialog(String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+            },
+            child: Image.network(imageUrl),
+          ),
+        );
+      },
     );
   }
 
